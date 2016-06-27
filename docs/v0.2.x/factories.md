@@ -67,7 +67,7 @@ import { Factory } from 'ember-cli-mirage';
 export default Factory.extend({
 
   email(i) {
-    return `email${i}@acme.com`;  
+    return `email${i}@acme.com`;
   },
 
   isAdmin(i) {
@@ -141,6 +141,44 @@ import Human from './human';
 
 export default Human.extend({
   gender: 'male'
+});
+```
+
+## Creating complex object graphs
+
+Sometimes you need to create a set of related objects. Keep your sanity and use our beautiful factory afterCreate hook.
+
+```js
+// mirage/factories/user.js
+Factory.extend({
+  afterCreate(user, server) {
+    user.update({ name: 'Frog322' });
+    server.create('video', { user, title: 'Ants Marching' });
+  }
+});
+
+// mirage/factories/video.js
+Factory.extend({
+  title: 'Lorem ipsum',
+  afterCreate(video, server) {
+    server.create('comment', { video });
+  }
+});
+
+// mirage/factories/comment.js
+Factory.extend({
+  text: 'This is awesome'
+});
+
+// test
+
+test("I can read the comments on a users's video", function() {
+  var user = server.create('user');
+
+
+  andThen(() => {
+    equal( find('h1').text(), 'The contact is Link');
+  });
 });
 ```
 
